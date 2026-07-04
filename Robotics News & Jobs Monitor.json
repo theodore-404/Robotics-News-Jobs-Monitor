@@ -1,0 +1,344 @@
+{
+  "name": "Robotics News & Jobs Monitor",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    json:{\n      email:\n        `Robotics Daily\n        \n        News\n        ${$input.first().json.content.parts[0].text}\n        \n        ---\n\n        Jobs\n        ${$input.first().json.jobs}\n        \n        `\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        912,
+        0
+      ],
+      "id": "53102907-0ad9-4316-a5e3-5ef7bc53ee44",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are a robotics news editor.\n\nSummarize the following news into a clean daily briefing.\n\nRules:\n- Maximum 5 bullet points.\n- Group similar stories together.\n- Use clear English.\n- Mention company names.\n- Do not invent information.\n\nNews:\n{{$json.news}}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        384,
+        -80
+      ],
+      "id": "1f4f0439-1ab9-4ac0-af5b-fa48a091a894",
+      "name": "Message a model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "TS94aJSRmf8H3DrJ",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "tioonlygame@gmail.com",
+        "subject": "Daily Robotics AI Update",
+        "message": "={{$json.html}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1504,
+        0
+      ],
+      "id": "9655c0e4-6b27-461f-ab09-97755b0705a4",
+      "name": "Send a message",
+      "webhookId": "eb5882aa-cc2c-45e4-818b-eb760d088939",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "SBuDcv3qqSE263Yq",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "markdownToHtml",
+        "markdown": "={{$json.content.parts[0].text}}",
+        "destinationKey": "html",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.markdown",
+      "typeVersion": 1,
+      "position": [
+        1344,
+        0
+      ],
+      "id": "a0d054d8-2025-4803-bd62-f7a5b918b9d2",
+      "name": "Markdown"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        752,
+        0
+      ],
+      "id": "0352ed0d-97c1-4bb9-a63b-fe968ed4ac1d",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "url": "https://www.roboticsjobs.co.uk/feed.xml",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        48,
+        80
+      ],
+      "id": "ab8a8dd4-64d2-4edb-8f7a-4f6286efd7d4",
+      "name": "RSS Jobs"
+    },
+    {
+      "parameters": {
+        "url": "https://www.therobotreport.com/feed/",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        48,
+        -80
+      ],
+      "id": "cceb1ef1-e111-4a4d-828d-3761af9336dc",
+      "name": "RSS News"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nlet jobs = \"\";\nfor (const item of items) {\n  jobs += `${item.json.title}\n  \\n`;\n  jobs += `${item.json.link}\n  \\n\\n`;\n}\n\nreturn [\n  {\n    json: {\n      jobs\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        352,
+        80
+      ],
+      "id": "7be666fc-8cb6-4504-8004-346eb6dfccaf",
+      "name": "Code in Jobs"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nlet news = \"\";\nfor (const item of items) {\n  news += `Title: ${item.json.title}\\n`;\n  news += `Content: ${item.json.contentSnippet}\\n`;\n  news += `Source: ${item.json.link}\\n\\n`;\n}\n\nreturn [\n  {\n    json: {\n      news\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        -80
+      ],
+      "id": "68b8aa58-5777-4a4e-a3d6-931995425954",
+      "name": "Code in News"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are the editor of a daily robotics newsletter.\n\nCreate a clean and professional newsletter in Markdown.\n\nRequirements:\n\nRobotics Daily Brief\n\nStart with:\n\"Good Morning! Here are today's most important robotics updates.\"\n\n---\n\nTop Robotic News\n\nChoose ONLY the 5 most important news articles.\nFor each article, use this format:\n\n{Title}\nSummary\n- 2 concise sentences.\nWhy it matters\n- 1 sentence explaining the impact.\nSource\n- Original URL.\n\n---\n\nRobotics Jobs\n\nList every job using this format:\n\n{Job Title}\n- Link: {URL}\nIf there are no jobs, write:\n\"No robotics jobs found today.\"\n\nNEWS:\n{{$json.news}}\nJOBS:\n{{$json.jobs}}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        1072,
+        0
+      ],
+      "id": "29611e36-603d-41b3-ac3a-f0fc0fb64571",
+      "name": "Message a model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "TS94aJSRmf8H3DrJ",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 7
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -144,
+        0
+      ],
+      "id": "0fb16373-932c-405b-aed4-b58d6e3e719c",
+      "name": "Schedule Trigger",
+      "disabled": true
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Message a model1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Markdown": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS Jobs": {
+      "main": [
+        [
+          {
+            "node": "Code in Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS News": {
+      "main": [
+        [
+          {
+            "node": "Code in News",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in Jobs": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Code in News": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model1": {
+      "main": [
+        [
+          {
+            "node": "Markdown",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "RSS News",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "6e726815-718a-47ff-9d71-b91b872c2985",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ce064655736cca3f5832cca7d9eee29a72fa756e0ca3dad3512163c1b460663f"
+  },
+  "nodeGroups": [],
+  "id": "GL9HKpbttlMhU0NO",
+  "tags": []
+}
